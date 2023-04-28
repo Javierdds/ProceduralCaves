@@ -1,145 +1,3 @@
-//using UnityEngine;
-//using System.Collections;
-//using System;
-
-//public class MapGenerator : MonoBehaviour
-//{
-
-//	public int width;
-//	public int height;
-
-//	public string seed;
-//	public bool useRandomSeed;
-
-//	[Range(0, 100)]
-//	public int randomFillPercent;
-
-//	int[,] map;
-
-//	void Start()
-//	{
-//		GenerateMap();
-//	}
-
-//	void Update()
-//	{
-//		if (Input.GetMouseButtonDown(0))
-//		{
-//			GenerateMap();
-//		}
-//	}
-
-//	void GenerateMap()
-//	{
-//		map = new int[width, height];
-//		RandomFillMap();
-
-//		for (int i = 0; i < 5; i++)
-//		{
-//			SmoothMap();
-//		}
-//	}
-
-
-//	void RandomFillMap()
-//	{
-//		if (useRandomSeed)
-//		{
-//			seed = Time.time.ToString();
-//		}
-
-//		System.Random pseudoRandom = new System.Random(seed.GetHashCode());
-
-//		for (int x = 0; x < width; x++)
-//		{
-//			for (int y = 0; y < height; y++)
-//			{
-//				if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
-//				{
-//					map[x, y] = 1;
-//				}
-//				else
-//				{
-//					map[x, y] = (pseudoRandom.Next(0, 100) < randomFillPercent) ? 1 : 0;
-//				}
-//			}
-//		}
-//	}
-
-//	void SmoothMap()
-//	{
-//		for (int x = 0; x < width; x++)
-//		{
-//			for (int y = 0; y < height; y++)
-//			{
-//				int neighbourWallTiles = GetSurroundingWallCount(x, y);
-
-//				if (neighbourWallTiles > 4)
-//					map[x, y] = 1;
-//				else if (neighbourWallTiles < 4)
-//					map[x, y] = 0;
-
-//			}
-//		}
-//	}
-
-//	int GetSurroundingWallCount(int gridX, int gridY)
-//	{
-//		int wallCount = 0;
-//		for (int neighbourX = gridX - 1; neighbourX <= gridX + 1; neighbourX++)
-//		{
-//			for (int neighbourY = gridY - 1; neighbourY <= gridY + 1; neighbourY++)
-//			{
-//				if (neighbourX >= 0 && neighbourX < width && neighbourY >= 0 && neighbourY < height)
-//				{
-//					if (neighbourX != gridX || neighbourY != gridY)
-//					{
-//						wallCount += map[neighbourX, neighbourY];
-//					}
-//				}
-//				else
-//				{
-//					wallCount++;
-//				}
-//			}
-//		}
-
-//		return wallCount;
-//	}
-
-
-//void OnDrawGizmos()
-//{
-//	if (map != null)
-//	{
-//		for (int x = 0; x < width; x++)
-//		{
-//			for (int y = 0; y < height; y++)
-//			{
-//				Gizmos.color = (map[x, y] == 1) ? Color.black : Color.white;
-//				Vector3 pos = new Vector3(-width / 2 + x + .5f, 0, -height / 2 + y + .5f);
-//				Gizmos.DrawCube(pos, Vector3.one);
-//			}
-//		}
-//	}
-//}
-
-//	private void OnDrawGizmosSelected()
-//	{
-//		if (map == null) return;
-
-//		for (int i = 0; i < width; i++)
-//		{
-//			for (int j = 0; j < height; j++)
-//			{
-//				//_map[i, j] = Random.Range(0, 2);
-//				Gizmos.color = map[i, j] == 1 ? Color.black : Color.white;
-//				Gizmos.DrawCube(new Vector2(i, j), Vector2.one);
-//			}
-//		}
-//	}
-//}
-
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -235,50 +93,32 @@ public class MapGenerator : MonoBehaviour
 
     public int GetNumberOfSurroundingWalls(int posX, int posY)
     {
-        int wallCount = 0;
-        for (int neighbourX = posX - 1; neighbourX <= posX + 1; neighbourX++)
+        int numberOfSurroundingWalls = 0;
+        // Se comprueba lo siguiente:
+        //  |x - 1, y + 1,| x, y + 1   | x + 1, y + 1
+        //  |x - 1, y     | posX, posY | x + 1, y
+        //  |x - 1, y - 1 | x, y - 1   | x + 1, y - 1
+        for (int rowIndex = posX - 1; rowIndex <= posX + 1; rowIndex++)
         {
-            for (int neighbourY = posY - 1; neighbourY <= posY + 1; neighbourY++)
+            for (int columnIndex = posY - 1; columnIndex <= posY + 1; columnIndex++)
             {
-                if (neighbourX >= 0 && neighbourX < _mapWidth && neighbourY >= 0 && neighbourY < _mapHeight)
+                // Si la posición está fuera del mapa se considera un muro
+                if (rowIndex < 0 || rowIndex >= _mapWidth || columnIndex < 0 || columnIndex >= _mapHeight)
                 {
-                    if (neighbourX != posX || neighbourY != posY)
-                    {
-                        wallCount += _map[neighbourX, neighbourY];
-                    }
+                    numberOfSurroundingWalls++;
+                    continue;
                 }
                 else
                 {
-                    wallCount++;
+                    // Excluimos la comprobación de la casilla propia
+                    if (rowIndex == posX && columnIndex == posY) continue;
+
+                    numberOfSurroundingWalls += _map[rowIndex, columnIndex];
                 }
             }
         }
 
-        return wallCount;
-        //int numberOfSurroundingWalls = 0;
-        //// Se comprueba lo siguiente:
-        ////  |x - 1, y + 1,| x, y + 1   | x + 1, y + 1
-        ////  |x - 1, y     | posX, posY | x + 1, y
-        ////  |x - 1, y - 1 | x, y - 1   | x + 1, y - 1
-        //for (int rowIndex = posX - 1; rowIndex <= posX + 1; rowIndex++)
-        //{
-        //    for (int columnIndex = posY - 1; columnIndex < posY + 1; columnIndex++)
-        //    {
-        //        // Si la posición está fuera del mapa o es la coordenada de la que queremos
-        //        // contar sus vecinos, ignoramos la iteración y pasamos a la siguiente
-        //        if (rowIndex < 0 || rowIndex >= _mapWidth || columnIndex < 0 || columnIndex >= _mapHeight
-        //            || (rowIndex == posX && columnIndex == posY))
-        //        {
-        //            //Debug.Log($"[Posición]: {rowIndex} {columnIndex} está fuera del mapa");
-        //            continue;
-        //        }
-
-        //        numberOfSurroundingWalls += _map[rowIndex, columnIndex] == 1 ? 1 : 0;
-        //    }
-        //}
-        //Debug.Log($"[Number of surrounding walls for {posX} {posY}]: {numberOfSurroundingWalls}");
-
-        //return numberOfSurroundingWalls;
+        return numberOfSurroundingWalls;
     }
 
 
