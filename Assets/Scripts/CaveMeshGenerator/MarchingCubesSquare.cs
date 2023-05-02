@@ -1,8 +1,9 @@
 using UnityEngine;
 
-namespace ProceduralCave.Generator.Mesh
+namespace ProceduralCave.Generator.CaveMesh
 {
 	/// <summary>
+	/// Véase https://youtu.be/yOgIncKp0BE?list=PLFt_AvWsXl0eZgMK_DT5_biRkWXftAOf9
 	/// Marching cube diagram:
 	///			|X|O|X|
 	///			|O| |O|
@@ -16,6 +17,8 @@ namespace ProceduralCave.Generator.Mesh
 		private ControlNode _topLeft, _topRight, _bottomRight, _bottomLeft;
 		private Node _centreTop, _centreRight, _centreBottom, _centreLeft;
 
+		private int _squareConfiguration;
+
 		#region Gettters & Setters
 
 		public ControlNode TopLeft { get => _topLeft; set => _topLeft = value; }
@@ -26,10 +29,11 @@ namespace ProceduralCave.Generator.Mesh
 		public Node CentreRight { get => _bottomRight.Above; set => _centreRight = value; }
 		public Node CentreBottom { get => _bottomLeft.Right; set => _centreBottom = value; }
 		public Node CentreLeft { get => _bottomLeft.Above; set => _centreLeft = value; }
+        public int SquareConfiguration { get => _squareConfiguration; set => _squareConfiguration = value; }
 
-		#endregion
+        #endregion
 
-		public MarchingCubesSquare()
+        public MarchingCubesSquare()
         {
 
         }
@@ -46,6 +50,27 @@ namespace ProceduralCave.Generator.Mesh
 			_centreRight = bottomRight.Above;
 			_centreBottom = bottomLeft.Right;
 			_centreLeft = bottomLeft.Above;
+
+			if (topLeft.IsActive)
+				_squareConfiguration += 8;
+			if (topRight.IsActive)
+				_squareConfiguration += 4;
+			if (bottomRight.IsActive)
+				_squareConfiguration += 2;
+			if (bottomLeft.IsActive)
+				_squareConfiguration += 1;
+		}
+
+		public void InitConfiguration()
+        {
+			if (_topLeft.IsActive)
+				_squareConfiguration += 8;
+			if (_topRight.IsActive)
+				_squareConfiguration += 4;
+			if (_bottomRight.IsActive)
+				_squareConfiguration += 2;
+			if (_bottomLeft.IsActive)
+				_squareConfiguration += 1;
 		}
     }
 }

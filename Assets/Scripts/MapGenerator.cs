@@ -1,4 +1,4 @@
-using ProceduralCave.Generator.Mesh;
+using ProceduralCave.Generator.CaveMesh;
 using UnityEngine;
 
 namespace ProceduralCave.Generator
@@ -10,6 +10,8 @@ namespace ProceduralCave.Generator
         [SerializeField] private int _mapWidth;
         [SerializeField] private int _mapHeight;
         [SerializeField] private float _mapSquareSize;
+        [SerializeField] private int _roomThresholdSize;
+        [SerializeField] private int _wallThresholdSize;
 
         [SerializeField] private string _seed;
         [SerializeField] private bool _useRandomSeed;
@@ -47,6 +49,10 @@ namespace ProceduralCave.Generator
             {
                 SmoothMap();
             }
+
+            // Elimina zonas del mapa que no han sido suavizadas correctamente
+            MapRegionsController regions = new MapRegionsController(_map, _roomThresholdSize, _wallThresholdSize);
+            _map = regions.ProcessMap();
 
             // Dibuja el mesh del mapa
             MarchingCubesMeshGenerator meshGen = GetComponent<MarchingCubesMeshGenerator>();

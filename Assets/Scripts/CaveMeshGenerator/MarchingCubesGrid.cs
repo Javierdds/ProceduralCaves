@@ -1,8 +1,9 @@
 using UnityEngine;
 
-namespace ProceduralCave.Generator.Mesh
+namespace ProceduralCave.Generator.CaveMesh
 {
 	/// <summary>
+	/// Véase https://youtu.be/yOgIncKp0BE?list=PLFt_AvWsXl0eZgMK_DT5_biRkWXftAOf9
 	/// Grid/Matriz de cubos que aplica la técnica Marching Cubes
 	/// 
 	/// Los elementos del grid son instancias de la clase MarchingCubesSquare
@@ -75,6 +76,7 @@ namespace ProceduralCave.Generator.Mesh
 						BottomRight = controlNodes[x + 1, y],
 						BottomLeft = controlNodes[x, y]
 					};
+					currentSquare.InitConfiguration();
 
 					grid[x, y] = currentSquare;
 

@@ -1,8 +1,9 @@
 using UnityEngine;
 
-namespace ProceduralCave.Generator.Mesh
+namespace ProceduralCave.Generator.CaveMesh
 {
 	/// <summary>
+	/// Véase https://youtu.be/yOgIncKp0BE?list=PLFt_AvWsXl0eZgMK_DT5_biRkWXftAOf9
 	/// Nodo de control para aplicar la técnica "Marching Cubes"
 	/// 
 	/// Diferencia entre nodo y nodo de control en la clase "MarchingCubesSquare"

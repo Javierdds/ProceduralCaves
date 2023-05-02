@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ProceduralCave.Generator.Mesh
+namespace ProceduralCave.Generator.CaveMesh
 {
     /// <summary>
     /// Nodo básico para aplicar la técnica de "Marching Cubes"
