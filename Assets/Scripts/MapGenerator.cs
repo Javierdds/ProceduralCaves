@@ -51,7 +51,7 @@ namespace ProceduralCave.Generator
             }
 
             // Elimina zonas del mapa que no han sido suavizadas correctamente
-            MapRegionsController regions = new MapRegionsController(_map, _roomThresholdSize, _wallThresholdSize);
+            MapRegionsController regions = new MapRegionsController(_map, _roomThresholdSize, _wallThresholdSize, _mapSquareSize);
             _map = regions.ProcessMap();
 
             // Dibuja el mesh del mapa
@@ -134,23 +134,6 @@ namespace ProceduralCave.Generator
             }
 
             return numberOfSurroundingWalls;
-        }
-
-
-
-        private void OnDrawGizmosSelected()
-        {
-            //if (_map == null) return;
-
-            //for (int i = 0; i < _mapWidth; i++)
-            //{
-            //    for (int j = 0; j < _mapHeight; j++)
-            //    {
-            //        //_map[i, j] = Random.Range(0, 2);
-            //        Gizmos.color = _map[i, j] == 1 ? Color.black : Color.white;
-            //        Gizmos.DrawCube(new Vector2(i, j), Vector2.one);
-            //    }
-            //}
         }
 
     }

@@ -176,7 +176,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 70.5
+  orthographic size: 35
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -241,14 +241,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _mapWidth: 128
   _mapHeight: 72
-  _mapSquareSize: 2
+  _mapSquareSize: 1
   _roomThresholdSize: 50
   _wallThresholdSize: 50
   _seed: 
   _useRandomSeed: 1
   _smoothIterations: 5
   _neighborInfluenceIndex: 4
-  _fillPercent: 47
+  _fillPercent: 53
 --- !u!4 &709917041
 Transform:
   m_ObjectHideFlags: 0

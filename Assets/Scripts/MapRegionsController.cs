@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ProceduralCave.Generator
 {
-	struct Coord
+	public struct Coord
 	{
 		public int tileX;
 		public int tileY;
@@ -21,12 +21,14 @@ namespace ProceduralCave.Generator
 		private int[,] _regionsMap;
 		private int _roomThresholdSize;
 		private int _wallThresholdSize;
+		private float _squareSize;
 
-		public MapRegionsController(int[,] map, int roomThreshold, int wallThreshold)
+		public MapRegionsController(int[,] map, int roomThreshold, int wallThreshold, float squareSize)
         {
 			_regionsMap = map;
 			_roomThresholdSize = roomThreshold;
 			_wallThresholdSize = wallThreshold;
+			_squareSize = squareSize;
 		}
 
 		public int[,] ProcessMap()
@@ -45,6 +47,7 @@ namespace ProceduralCave.Generator
 			}
 
 			List<List<Coord>> roomRegions = GetRegions(0);
+			List<MapRoom> survivingRooms = new List<MapRoom>();
 
 			foreach (List<Coord> roomRegion in roomRegions)
 			{
@@ -55,7 +58,14 @@ namespace ProceduralCave.Generator
 						_regionsMap[tile.tileX, tile.tileY] = 1;
 					}
 				}
+                else
+                {
+					survivingRooms.Add(new MapRoom(roomRegion, _regionsMap));
+                }
 			}
+
+			MapRoomController roomController = new(_regionsMap.GetLength(0), _regionsMap.GetLength(1), _squareSize);
+			roomController.ConnectClosestRooms(survivingRooms);
 
 			return _regionsMap;
 		}
@@ -119,10 +129,13 @@ namespace ProceduralCave.Generator
 			return tiles;
 		}
 
+		// Comprueba que una coordenada no esté fuera del mapa generado
 		bool IsInMapRange(int x, int y)
 		{
 			return x >= 0 && x < _regionsMap.GetLength(0) && y >= 0 && y < _regionsMap.GetLength(1);
 		}
+
+		
 	}
 }
 
