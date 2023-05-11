@@ -21,6 +21,11 @@ namespace ProceduralCave.Generator
         [Range(0, 100)]
         [SerializeField] private int _fillPercent;
 
+        [SerializeField] private bool _connectRooms;
+        [SerializeField] private int _passageRadius;
+        [SerializeField] private MeshFilter _caveMesh;
+        [SerializeField] private MeshFilter _wallsMesh;
+
         private int[,] _map;
 
 
@@ -51,12 +56,13 @@ namespace ProceduralCave.Generator
             }
 
             // Elimina zonas del mapa que no han sido suavizadas correctamente
-            MapRegionsController regions = new MapRegionsController(_map, _roomThresholdSize, _wallThresholdSize, _mapSquareSize);
+            MapRegionsController regions = new MapRegionsController(_map, _roomThresholdSize, _wallThresholdSize, _mapSquareSize, _connectRooms, _passageRadius);
             _map = regions.ProcessMap();
 
             // Dibuja el mesh del mapa
             MarchingCubesMeshGenerator meshGen = GetComponent<MarchingCubesMeshGenerator>();
-            meshGen.GenerateMesh(_map, _mapSquareSize);
+            meshGen.GenerateMesh(_map, _mapSquareSize, _caveMesh, _wallsMesh);
+            //meshGen.GenerateCollider();
         }
 
         public void FillMap()

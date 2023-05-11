@@ -22,6 +22,8 @@ namespace ProceduralCave.Generator
 		private int _roomThresholdSize;
 		private int _wallThresholdSize;
 		private float _squareSize;
+		private int _passageRadius;
+		private bool _connectRooms;
 
 		public MapRegionsController(int[,] map, int roomThreshold, int wallThreshold, float squareSize)
         {
@@ -31,7 +33,14 @@ namespace ProceduralCave.Generator
 			_squareSize = squareSize;
 		}
 
-		public int[,] ProcessMap()
+        public MapRegionsController(int[,] regionsMap, int roomThresholdSize, int wallThresholdSize, float squareSize, bool connectRooms, int passageRadius)
+			: this(regionsMap, roomThresholdSize, wallThresholdSize, squareSize)
+        {
+			_passageRadius = passageRadius;
+			_connectRooms = connectRooms;
+        }
+
+        public int[,] ProcessMap()
 		{
 			List<List<Coord>> wallRegions = GetRegions(1);
 
@@ -64,8 +73,12 @@ namespace ProceduralCave.Generator
                 }
 			}
 
-			MapRoomController roomController = new(_regionsMap.GetLength(0), _regionsMap.GetLength(1), _squareSize);
-			roomController.ConnectClosestRooms(survivingRooms);
+			survivingRooms.Sort();
+			survivingRooms[0].IsMainRoom = true;
+			survivingRooms[0].IsAccesibleFromMainRoom = true;
+
+			MapRoomController roomController = new(_regionsMap.GetLength(0), _regionsMap.GetLength(1), _squareSize, _passageRadius);
+			roomController.ConnectClosestRooms(survivingRooms, ref _regionsMap, _connectRooms);
 
 			return _regionsMap;
 		}
