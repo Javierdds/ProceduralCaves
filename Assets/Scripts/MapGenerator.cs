@@ -18,7 +18,7 @@ namespace ProceduralCave.Generator
         [SerializeField] private int _smoothIterations;
         [SerializeField] private int _neighborInfluenceIndex;
 
-        [Range(0, 100)]
+        [Range(40, 55)]
         [SerializeField] private int _fillPercent;
 
         [SerializeField] private bool _connectRooms;

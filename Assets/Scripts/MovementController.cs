@@ -7,7 +7,7 @@ namespace Player
     {
         [SerializeField] private float _movementSpeed;
 
-        private Rigidbody2D _characterController;
+        private Rigidbody2D _rigidBody;
         private float _hInput;
         private float _vInput;
 
@@ -16,7 +16,7 @@ namespace Player
 
         private void Awake()
         {
-            _characterController = GetComponent<Rigidbody2D>();
+            _rigidBody = GetComponent<Rigidbody2D>();
         }
 
         private void Start()
@@ -26,15 +26,15 @@ namespace Player
 
         private void FixedUpdate()
         {
-            Vector2 moveInput = new Vector2(_hInput, _vInput);
+            Vector2 moveInput = new Vector2(_hInput, _vInput).normalized;
 
             _doMove(moveInput);
         }
 
         private void Update()
         {
-            _hInput = Input.GetAxis("Horizontal");
-            _vInput = Input.GetAxis("Vertical");
+            _hInput = Input.GetAxisRaw("Horizontal");
+            _vInput = Input.GetAxisRaw("Vertical");
         }
 
         //Funcion del cliente
@@ -42,8 +42,8 @@ namespace Player
         {
             Vector2 moveInput = new Vector2(input.x, input.y);
 
-            _characterController.MovePosition(_characterController.position 
-                + (moveInput * _movementSpeed * Time.deltaTime));
+            _rigidBody.MovePosition(_rigidBody.position 
+                + (moveInput * _movementSpeed * Time.fixedDeltaTime));
         }
     }
 }
