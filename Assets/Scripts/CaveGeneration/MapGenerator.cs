@@ -62,7 +62,6 @@ namespace ProceduralCave.Generator
             // Dibuja el mesh del mapa
             MarchingCubesMeshGenerator meshGen = GetComponent<MarchingCubesMeshGenerator>();
             meshGen.GenerateMesh(_map, _mapSquareSize, _caveMesh, _wallsMesh);
-            //meshGen.GenerateCollider();
         }
 
         public void FillMap()
