@@ -1,4 +1,6 @@
 using ProceduralCave.Generator.CaveMesh;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ProceduralCave.Generator
@@ -26,11 +28,21 @@ namespace ProceduralCave.Generator
         [SerializeField] private MeshFilter _caveMesh;
         [SerializeField] private MeshFilter _wallsMesh;
 
+        [Header("Interactives")]
+        [SerializeField] private float _coinsAmount;
+        [SerializeField] private int _coinsInfluence;
+        [SerializeField] private GameObject _coinPrefab;
+
         private int[,] _map;
 
+        private List<Coord> _availableCoords;
+        private int _spawnedCoins;
 
         private void Awake()
         {
+            _availableCoords = new();
+            _spawnedCoins = 0;
+
             GenerateMap();
         }
 
@@ -62,6 +74,8 @@ namespace ProceduralCave.Generator
             // Dibuja el mesh del mapa
             MarchingCubesMeshGenerator meshGen = GetComponent<MarchingCubesMeshGenerator>();
             meshGen.GenerateMesh(_map, _mapSquareSize, _caveMesh, _wallsMesh);
+
+            FillMapWithCoins();
         }
 
         public void FillMap()
@@ -111,6 +125,39 @@ namespace ProceduralCave.Generator
             _map = auxMap;
         }
 
+        public void FillMapWithCoins()
+        {
+            int[,] auxMap = _map;
+
+            for (int i = 0; i < _mapWidth; i++)
+            {
+                for (int j = 0; j < _mapHeight; j++)
+                {
+                    int neighbourWallTiles = GetNumberOfSurroundingWalls(i, j);
+
+                    if (neighbourWallTiles == 0 && auxMap[i,j] == 0) 
+                    {
+                        auxMap[i, j] = 2;
+                        Coord coinCoord = new Coord(i, j);
+                        _availableCoords.Add(coinCoord);
+                    }
+                }
+            }
+
+            var rnd = new System.Random();
+            _availableCoords.Shuffle(rnd);
+
+            for (int i = 0; i < _availableCoords.Count && _spawnedCoins < _coinsAmount; i++)
+            {
+                GameObject coin = Instantiate(_coinPrefab);
+                coin.transform.position = CoordToWorldPoint(_availableCoords[i]);
+
+                _spawnedCoins++;
+            }
+
+            _map = auxMap;
+        }
+
         public int GetNumberOfSurroundingWalls(int posX, int posY)
         {
             int numberOfSurroundingWalls = 0;
@@ -139,6 +186,15 @@ namespace ProceduralCave.Generator
             }
 
             return numberOfSurroundingWalls;
+        }
+
+        // ehe
+        public Vector2 CoordToWorldPoint(Coord tile)
+        {
+            Vector2 worldPosition = new Vector2(-_mapWidth / 2 + .5f + tile.tileX, -_mapHeight / 2 + .5f + tile.tileY);
+            worldPosition *= _mapSquareSize;
+            //Debug.Log($"[WorldPos]: {worldPosition}");
+            return worldPosition;
         }
 
     }
