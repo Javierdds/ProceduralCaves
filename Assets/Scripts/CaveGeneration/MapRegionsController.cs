@@ -13,6 +13,11 @@ namespace ProceduralCave.Generator
 			tileX = x;
 			tileY = y;
 		}
+
+		public bool HasDefaultValue()
+        {
+			return tileX == 0 && tileY == 0;
+        }
 	}
 
 	public class MapRegionsController

@@ -52,7 +52,6 @@ namespace Player
         {
             _hInput = Input.GetAxisRaw("Horizontal");
             _vInput = Input.GetAxisRaw("Vertical");
-
         }
 
         private void MoveObject(Vector2 input)

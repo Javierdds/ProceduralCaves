@@ -7,8 +7,10 @@ namespace Player
     {
 
         [SerializeField] private float _movementSpeed;
+        [SerializeField] private float _spinSpeed;
 
         private MovementController _movementController;
+        private AnimationController _animationController;
         private PlayerPointsController _pointsController;
 
         public PlayerPointsController PointsController { get => _pointsController; set => _pointsController = value; }
@@ -17,6 +19,7 @@ namespace Player
         {
             _movementController = new MovementController(GetComponent<Rigidbody2D>(), _movementSpeed);
             _pointsController = new PlayerPointsController();
+            _animationController = new AnimationController(transform, _spinSpeed);
         }
 
         private void FixedUpdate()
@@ -37,6 +40,7 @@ namespace Player
         private void UpdateControllers()
         {
             _movementController.Update();
+            _animationController.Update();
         }
 
         private void OnCollisionEnter2D(Collision2D collision)

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class InteractiveCoin : InteractiveObject
 {
-
+    [SerializeField] private GameObject _coinGO;
     [SerializeField] private int _points;
 
     public override void Interact()
@@ -22,6 +22,6 @@ public class InteractiveCoin : InteractiveObject
 
     public void DisableObject()
     {
-        gameObject.SetActive(false);
+        _coinGO.SetActive(false);
     }
 }

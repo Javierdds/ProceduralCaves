@@ -1,4 +1,5 @@
 using ProceduralCave.Generator.CaveMesh;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace ProceduralCave.Generator
 
     public class MapGenerator : MonoBehaviour
     {
+        [SerializeField] private Transform _player;
 
         [SerializeField] private int _mapWidth;
         [SerializeField] private int _mapHeight;
@@ -29,19 +31,24 @@ namespace ProceduralCave.Generator
         [SerializeField] private MeshFilter _wallsMesh;
 
         [Header("Interactives")]
-        [SerializeField] private float _coinsAmount;
-        [SerializeField] private int _coinsInfluence;
+        [SerializeField] private int _coinsAmount;
+        [Tooltip("Pivot coins are used to set the defined amount of coins as the original spawned coins, in order to spawn the remaining ones next to them")]
+        [SerializeField] private int _pivotCoinsPercentage;
         [SerializeField] private GameObject _coinPrefab;
 
         private int[,] _map;
 
         private List<Coord> _availableCoords;
-        private int _spawnedCoins;
+        private Dictionary<GameObject, Coord> _coinsDictionary;
+        private GameObject[] _spawnedCoins;
+        private int _spawnedCoinsCounter;
 
         private void Awake()
         {
             _availableCoords = new();
-            _spawnedCoins = 0;
+            _spawnedCoinsCounter = 0;
+            _spawnedCoins = new GameObject[_coinsAmount];
+            _coinsDictionary = new Dictionary<GameObject, Coord>();
 
             GenerateMap();
         }
@@ -76,6 +83,38 @@ namespace ProceduralCave.Generator
             meshGen.GenerateMesh(_map, _mapSquareSize, _caveMesh, _wallsMesh);
 
             FillMapWithCoins();
+
+            _player.transform.position = GetPlayerSpawnPosition();
+        }
+
+        public Vector3 GetPlayerSpawnPosition()
+        {
+            bool isPositionFound = false;
+            Vector3 spawnPosition = new Vector3();
+            int centroX = _map.GetLength(0) / 2;
+            int centroY = _map.GetLength(1) / 2;
+            int maxDistancia = Math.Max(_map.GetLength(0) - centroX - 1, centroX) + Math.Max(_map.GetLength(1) - centroY - 1, centroY);
+
+            for (int distancia = 0; distancia <= maxDistancia && !isPositionFound; distancia++)
+            {
+                for (int i = centroX - distancia; i <= centroX + distancia && !isPositionFound; i++)
+                {
+                    for (int j = centroY - distancia; j <= centroY + distancia && !isPositionFound; j++)
+                    {
+                        if (i >= 0 && i < _map.GetLength(0) && j >= 0 && j < _map.GetLength(1))
+                        {
+                            if (_map[i, j] == 0)
+                            {
+                                isPositionFound = true;
+                                Coord spawnCoord = new Coord(i, j);
+                                spawnPosition = CoordToWorldPoint(spawnCoord);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return spawnPosition;
         }
 
         public void FillMap()
@@ -125,17 +164,27 @@ namespace ProceduralCave.Generator
             _map = auxMap;
         }
 
+        #region Coins
+
         public void FillMapWithCoins()
         {
             int[,] auxMap = _map;
+            _coinsDictionary = new Dictionary<GameObject, Coord>();
+            _spawnedCoinsCounter = 0;
+            foreach (var item in _spawnedCoins)
+            {
+                Destroy(item);
+            }
+            _spawnedCoins = new GameObject[_coinsAmount];
 
+            _availableCoords = new List<Coord>();
             for (int i = 0; i < _mapWidth; i++)
             {
                 for (int j = 0; j < _mapHeight; j++)
                 {
                     int neighbourWallTiles = GetNumberOfSurroundingWalls(i, j);
 
-                    if (neighbourWallTiles == 0 && auxMap[i,j] == 0) 
+                    if (neighbourWallTiles == 0 && auxMap[i, j] == 0)
                     {
                         auxMap[i, j] = 2;
                         Coord coinCoord = new Coord(i, j);
@@ -144,19 +193,106 @@ namespace ProceduralCave.Generator
                 }
             }
 
-            var rnd = new System.Random();
+            // Si hay menos coordenadas disponibles que monedas
+            // a crear, se ajustan las monedas a crear
+            if (_coinsAmount >= _availableCoords.Count) _coinsAmount = _availableCoords.Count - 1;
+
+            var rnd = new System.Random(_seed.GetHashCode());
             _availableCoords.Shuffle(rnd);
 
-            for (int i = 0; i < _availableCoords.Count && _spawnedCoins < _coinsAmount; i++)
-            {
-                GameObject coin = Instantiate(_coinPrefab);
-                coin.transform.position = CoordToWorldPoint(_availableCoords[i]);
+            int[] pivotCoins = new int[_coinsAmount / _pivotCoinsPercentage];
 
-                _spawnedCoins++;
+            for (int i = 0; i < pivotCoins.Length; i++)
+            {
+                if (i >= _coinsAmount || i >= _availableCoords.Count) break;
+
+                GameObject coin = CoinSpawner(_availableCoords[i]);
+                _spawnedCoins[i] = coin;
             }
+
+            int pivotCoinsIndex = 0;
+            int pivotCoinsModifier = 0;
+            for (int i = pivotCoins.Length; i < _coinsAmount; i++)
+            {
+                if (pivotCoinsIndex >= pivotCoins.Length)
+                {
+                    pivotCoinsIndex = 0 + pivotCoinsModifier;
+                }
+
+                _coinsDictionary.TryGetValue(_spawnedCoins[pivotCoinsIndex], out Coord pivotCoinCoord);
+
+                Coord coinPosition = GetAvailableCoordNearPivot(pivotCoinCoord);
+
+                if (coinPosition.HasDefaultValue())
+                {
+                    _availableCoords.Remove(coinPosition);
+
+                    continue;
+                }
+
+                GameObject coin = CoinSpawner(coinPosition);
+                _spawnedCoins[i] = coin;
+                pivotCoinsIndex++;
+            }
+
 
             _map = auxMap;
         }
+
+        public GameObject CoinSpawner(Coord position)
+        {
+            GameObject coin = Instantiate(_coinPrefab);
+            coin.transform.position = CoordToWorldPoint(position);
+            _coinsDictionary.Add(coin, position);
+            _availableCoords.Remove(position);
+
+            _spawnedCoinsCounter++;
+
+            return coin;
+        }
+
+        public Coord GetAvailableCoordNearPivot(Coord pivotCoinCoord)
+        {
+            Coord availablePosition = new Coord();
+            bool coordFound = false;
+            for (int i = pivotCoinCoord.tileX + 1; i < _mapWidth && !coordFound; i++)
+            {
+                availablePosition = new Coord(i, pivotCoinCoord.tileY);
+                if (_availableCoords.Contains(availablePosition))
+                {
+                    coordFound = true;
+                }
+                
+            }
+
+            if (coordFound) return availablePosition;
+
+            for (int i = pivotCoinCoord.tileY + 1; i < _mapWidth && !coordFound; i++)
+            {
+                availablePosition = new Coord(pivotCoinCoord.tileX, i);
+                if (_availableCoords.Contains(availablePosition)) coordFound = true;
+            }
+
+            if (coordFound) return availablePosition;
+
+            for (int i = pivotCoinCoord.tileX - 1; i > 0 && !coordFound; i--)
+            {
+                availablePosition = new Coord(i, pivotCoinCoord.tileY);
+                if (_availableCoords.Contains(availablePosition)) coordFound = true;
+            }
+
+            if (coordFound) return availablePosition;
+
+            for (int i = pivotCoinCoord.tileY - 1; i > 0 && !coordFound; i--)
+            {
+                availablePosition = new Coord(pivotCoinCoord.tileX, i);
+                if (_availableCoords.Contains(availablePosition)) coordFound = true;
+            }
+
+            return availablePosition;
+        }
+
+        #endregion
 
         public int GetNumberOfSurroundingWalls(int posX, int posY)
         {
@@ -179,8 +315,8 @@ namespace ProceduralCave.Generator
                     {
                         // Excluimos la comprobación de la casilla propia
                         if (rowIndex == posX && columnIndex == posY) continue;
-
-                        numberOfSurroundingWalls += _map[rowIndex, columnIndex];
+                        //if(_map[rowIndex, columnIndex] == 1)
+                            numberOfSurroundingWalls += _map[rowIndex, columnIndex];
                     }
                 }
             }
